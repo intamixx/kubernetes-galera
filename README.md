@@ -5,7 +5,7 @@ Tested on Kubernetes v1.21.3
 
 To operate a MariaDB Galera Cluster on top of Kubernetes it is especially important to implement the bootstrap of the cluster and to construct the configuration based on the current pods in the PetSet. In our case those tasks are taken care of by two init containers. In the galera-init image the tools to perform the bootstrap are packaged, and a second container runs the peer-finder binary, which queries the SRV record of the assigned service and generates the configuration for the MariaDB Galera Cluster based on the current members of the PetSet.
 
-When the first pet starts, wsrep_cluster_address=gcomm:// is used and the pod automatically bootstraps the cluster. Subsequently started pets add the hostnames they receive from the SRV record to wsrep_cluster_address and automatically join the cluster. Below is an example of what the configuration would look like after the start of the second pet.
+When the first statefulset starts, wsrep_cluster_address=gcomm:// is used and the pod automatically bootstraps the cluster. Subsequently started sets add the hostnames they receive from the SRV record to wsrep_cluster_address and automatically join the cluster. Below is an example of what the configuration would look like after the start of the second statefulset.
 
 ## Create SRV record
 for example a simple SRV config in dnsmasq would be
