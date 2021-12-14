@@ -1,6 +1,22 @@
 ## Requirements
 - Kubernetes 1.3+
 
+Tested on Kubernetes v1.21.3
+
+To operate a MariaDB Galera Cluster on top of Kubernetes it is especially important to implement the bootstrap of the cluster and to construct the configuration based on the current pods in the PetSet. In our case those tasks are taken care of by two init containers. In the galera-init image the tools to perform the bootstrap are packaged, and a second container runs the peer-finder binary, which queries the SRV record of the assigned service and generates the configuration for the MariaDB Galera Cluster based on the current members of the PetSet.
+
+When the first pet starts, wsrep_cluster_address=gcomm:// is used and the pod automatically bootstraps the cluster. Subsequently started pets add the hostnames they receive from the SRV record to wsrep_cluster_address and automatically join the cluster. Below is an example of what the configuration would look like after the start of the second pet.
+
+## Create SRV record
+for example a simple SRV config in dnsmasq would be
+
+srv-host=galera,mysql-0.galera.middleware.svc.cluster.local,3306,1
+
+/etc/hosts
+
+172.17.0.2      mysql-0 mysql-0.galera.middleware.svc.cluster.local
+
+Bootstrap the cluster with a single mysql node and once up and running, then add the remaining 2 SRV records to create a 3 node galera cluster.
 
 ## General informations
 
