@@ -1,0 +1,98 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql
+  namespace: middleware
+spec:
+  selector: #which pods the replica set should be responsible for
+    matchLabels:
+      app: mysql
+  serviceName: "galera"
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: mysql
+      namespace: middleware
+      annotations:
+        pod.alpha.kubernetes.io/initialized: "true"
+    spec:
+      initContainers:
+      - name: test-container
+        image: k8s.gcr.io/busybox
+        command: [ "/bin/sh", "-c", "cp /configmap/* /etc/my.cnf.d/" ]
+        volumeMounts:
+        - name: configmap
+          mountPath: /configmap
+        - name: config
+          mountPath: /etc/my.cnf.d
+#      securityContext:
+#        runAsUser: 999
+#        fsGroup: 998
+      containers:
+      - name: mysql
+        image: intamixx/kubernetes-galera:latest
+        imagePullPolicy: Always
+#        securityContext:
+#          runAsNonRoot: false
+        ports:
+        - containerPort: 3306
+          name: mysql
+        - containerPort: 4444
+          name: sst
+        - containerPort: 4567
+          name: replication
+        - containerPort: 4568
+          name: ist
+        readinessProbe:
+          exec:
+            command: ["bash", "-c", "mysql -uroot -p\"${MYSQL_ROOT_PASSWORD}\" -e 'show databases;'"]
+#            command:
+#            - /usr/share/container-scripts/mysql/readiness-probe.sh
+          initialDelaySeconds: 15
+          timeoutSeconds: 5
+        livenessProbe:
+          exec:
+            command: ["bash", "-c", "mysql -uroot -p\"${MYSQL_ROOT_PASSWORD}\" -e 'show databases;'"]
+#            command:
+#            - /usr/share/container-scripts/mysql/readiness-probe.sh
+          initialDelaySeconds: 60
+          timeoutSeconds: 5
+        env:
+          - name: POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+          - name: MYSQL_ROOT_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: galera
+                key: password
+        volumeMounts:
+        - name: config
+          mountPath: /etc/my.cnf.d
+        - name: datadir
+          mountPath: /var/lib/mysql
+#          subPath: data
+      volumes:
+      - name: config
+        emptyDir: {}
+      - name: configmap
+        configMap:
+          name: mysql-config
+          items:
+            - path: "galera.cnf"
+              key: galera.cnf
+#          - path: "mariadb.cnf"
+#            key: mariadb.cnf
+#          - path: "tune.cnf"
+#            key: tune.cnf
+  volumeClaimTemplates:
+  - metadata:
+      name: datadir
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 1Gi
