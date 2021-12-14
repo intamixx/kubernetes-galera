@@ -18,6 +18,7 @@ srv-host=galera,mysql-0.galera.middleware.svc.cluster.local,3306,1
 
 Bootstrap the cluster with a single mysql node and once up and running, then add the remaining 2 SRV records to create a 3 node galera cluster.
 
+
 ## General informations
 
 ### Environment variables and volumes
@@ -57,6 +58,8 @@ $ kubectl create -f galera-svc.yaml
 $ kubectl create -f galera-secrets.yaml
 $ kubectl create -f galera-statefulset.yaml
 ```
+
+Make sure of necessary permissions on the local disk under volume path for container to read/write into it.
 
 ### Cleanup cluster
 ```bash
