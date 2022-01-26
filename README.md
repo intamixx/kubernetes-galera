@@ -15,8 +15,12 @@ srv-host=galera,mysql-0.galera.middleware.svc.cluster.local,3306,1
 /etc/hosts
 
 For minikube e.g.
+
 172.17.0.2      mysql-0 mysql-0.galera.middleware.svc.cluster.local
+
+
 For worker e.g.
+
 10.44.0.2      mysql-0 mysql-0.galera.middleware.svc.cluster.local
 
 Bootstrap the cluster with a single mysql node and once up and running, then add the remaining 2 SRV records to create a 3 node galera cluster.
