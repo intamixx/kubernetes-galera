@@ -25,6 +25,10 @@ For worker e.g.
 
 Bootstrap the cluster with a single mysql node and once up and running, then add the remaining 2 SRV records to create a 3 node galera cluster.
 
+## Without DNS (kubernetes-galera-no_dns)
+As pods generate dynamic IPS, it can be problematic with statically setup SRV records and A records using peer-finder.
+Use image intamixx/kubernetes-galera-no_dns instead which queries the kubernetes API directly (kube-peer-finder.py) to determine dynamic IPs within a namespace without the need for DNS.
+
 
 ## General informations
 
